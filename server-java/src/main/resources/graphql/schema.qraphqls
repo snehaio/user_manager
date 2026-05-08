@@ -1,0 +1,21 @@
+type User {
+    id: ID!
+    name: String!
+    age: Int!
+    isMarried: Boolean!
+    role: Role!
+}
+
+enum Role { ADMIN USER }
+
+type Query {
+    getUsers(limit: Int, offset: Int, name: String): [User]
+    getUserById(id: ID!): User
+}
+
+type Mutation {
+    createUser(name: String!, age: Int!, isMarried: Boolean!): User
+    updateUser(id: ID!, isMarried: Boolean!): User
+    deleteUser(id: ID!): Boolean
+    login(name: String!, password: String!): String
+}
