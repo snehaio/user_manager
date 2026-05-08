@@ -1,38 +1,44 @@
 # User Manager – GraphQL CRUD Application
 
-A simple **full-stack CRUD application** built using **React, GraphQL, and Apollo**.
-The application allows users to **create, read, update, and delete users** with basic details like name, age, and marital status.
+A full-stack CRUD application built using **React, GraphQL, and Apollo** on the frontend, and **Java Spring Boot 3** on the backend with **PostgreSQL** persistence, **JWT-based authentication**, and **Docker** containerization.
 
-It demonstrates how **React interacts with a GraphQL API** using **Apollo Client**.
+The application allows users to create, read, update, and delete users with basic details like name, age, and marital status — with role-based access control (ADMIN/USER).
 
 ---
 
 ## 🚀 Features
 
-* ➕ Create a new user
-* 📋 View all users
-* 🔍 Search users by name
-* 🆔 Fetch a user by ID
-* ✏️ Update user marital status
-* ❌ Delete users
-* 🎨 Clean card-based UI
+- ➕ Create a new user
+- 📋 View all users
+- 🔍 Search users by name
+- 🆔 Fetch a user by ID
+- ✏️ Update user marital status
+- ❌ Delete users
+- 🔐 JWT-based authentication (ADMIN / USER roles)
+- 📄 Limit/offset pagination with advanced filtering
+- 🎨 Clean card-based UI
 
 ---
 
 ## 🛠 Tech Stack
 
 ### Frontend
-
-* React
-* Apollo Client
-* JavaScript
-* CSS
+- React
+- Apollo Client
+- JavaScript
+- CSS
 
 ### Backend
+- Java 21
+- Spring Boot 3
+- Spring for GraphQL
+- Spring Security + JWT
+- Spring Data JPA + Hibernate
+- PostgreSQL
 
-* Node.js
-* Apollo Server
-* GraphQL
+### DevOps
+- Docker
+- Docker Compose
 
 ---
 
@@ -41,56 +47,89 @@ It demonstrates how **React interacts with a GraphQL API** using **Apollo Client
 ```
 project-root
 │
-├── server.js          # GraphQL server
-├── src
-│   ├── App.jsx        # Main React component
-│   ├── App.css
-│   └── main.jsx
+├── client/                        # React frontend
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   └── main.jsx
+│   └── package.json
 │
+├── server-java/                   # Spring Boot backend
+│   ├── src/main/java/com/example/usermanager/
+│   │   ├── controller/
+│   │   │   └── UserController.java
+│   │   ├── model/
+│   │   │   ├── User.java
+│   │   │   └── Role.java
+│   │   ├── repository/
+│   │   │   └── UserRepository.java
+│   │   ├── security/
+│   │   │   ├── JwtUtil.java
+│   │   │   ├── JwtFilter.java
+│   │   │   └── SecurityConfig.java
+│   │   ├── service/
+│   │   │   └── UserService.java
+│   │   └── UsermanagerApplication.java
+│   ├── src/main/resources/
+│   │   ├── graphql/
+│   │   │   └── schema.graphqls
+│   │   └── application.properties
+│   └── Dockerfile
+│
+├── docker-compose.yml
 └── README.md
 ```
 
 ---
 
-## ⚙️ Installation
+## ⚙️ Installation & Setup
+
+### Prerequisites
+- Docker Desktop
+- Node.js (for frontend)
+
+---
 
 ### 1️⃣ Clone the repository
 
 ```bash
 git clone <your-repo-link>
-cd project-folder
+cd user_manager
 ```
 
-### 2️⃣ Install dependencies
+---
+
+### 2️⃣ Start Backend (Spring Boot + PostgreSQL via Docker)
 
 ```bash
+docker-compose up --build
+```
+
+This will:
+- Start PostgreSQL on port `5432`
+- Build and start the Spring Boot app on port `8080`
+
+Backend runs at:
+```
+http://localhost:8080
+```
+
+GraphiQL Playground:
+```
+http://localhost:8080/graphiql
+```
+
+---
+
+### 3️⃣ Start React Frontend
+
+```bash
+cd client
 npm install
-```
-
----
-
-### 3️⃣ Start GraphQL Server
-
-```bash
-node server.js
-```
-
-Server runs at:
-
-```
-http://localhost:4000
-```
-
----
-
-### 4️⃣ Start React Frontend
-
-```bash
 npm run dev
 ```
 
 Frontend runs at:
-
 ```
 http://localhost:5173
 ```
@@ -101,38 +140,60 @@ http://localhost:5173
 
 ### Queries
 
-```
-getUsers
-getUserById(id)
+```graphql
+getUsers(limit: Int, offset: Int, name: String): [User]
+getUserById(id: ID!): User
 ```
 
 ### Mutations
 
+```graphql
+createUser(name: String!, age: Int!, isMarried: Boolean!, password: String!): User
+updateUser(id: ID!, isMarried: Boolean!): User
+deleteUser(id: ID!): Boolean
+login(name: String!, password: String!): String
 ```
-createUser(name, age, isMarried)
-updateUser(id, isMarried)
-deleteUser(id)
+
+---
+
+## 🔐 Authentication
+
+Login mutation returns a **JWT token**:
+
+```graphql
+mutation {
+  login(name: "Sneha", password: "sneha123")
+}
 ```
+
+Use the token in request headers:
+```
+Authorization: Bearer <token>
+```
+
+Roles: `ADMIN` and `USER`
 
 ---
 
 ## 🧠 How It Works
 
-1. React frontend sends **GraphQL queries and mutations** using **Apollo Client**.
-2. Apollo Server processes the request.
-3. Resolver functions modify or fetch user data.
-4. Updated data is returned and displayed instantly in the UI.
+1. React frontend sends GraphQL queries and mutations using Apollo Client.
+2. Spring for GraphQL processes the request via `@QueryMapping` and `@MutationMapping`.
+3. Spring Security validates the JWT token on each request.
+4. Service layer interacts with PostgreSQL via Spring Data JPA.
+5. Updated data is returned and displayed instantly in the UI.
 
 ---
 
 ## 📌 Example User Object
 
-```
+```json
 {
-  id: "1",
-  name: "John Doe",
-  age: 30,
-  isMarried: true
+  "id": "uuid-string",
+  "name": "Sneha Singh",
+  "age": 21,
+  "isMarried": false,
+  "role": "USER"
 }
 ```
 
@@ -142,21 +203,28 @@ deleteUser(id)
 
 This project demonstrates:
 
-* GraphQL schema and resolvers
-* Apollo Client integration
-* Full-stack React + GraphQL workflow
-* CRUD operations using GraphQL
+- GraphQL schema and resolvers with Spring for GraphQL
+- Apollo Client integration with React
+- Full-stack React + GraphQL + Java workflow
+- CRUD operations using GraphQL
+- JWT-based authentication and role-based authorization
+- PostgreSQL persistence with Spring Data JPA
+- Docker containerization with Docker Compose
+- Limit/offset pagination and filtering
 
 ---
 
-## 🔮 Future Improvements
+## ✅ Improvements Made (Migration from Node.js)
 
-* Add database (MongoDB / PostgreSQL)
-* User authentication
-* Better UI components
-* Edit user form
-* Pagination and filtering
----
+| Feature | Before | After |
+|---|---|---|
+| Backend | Node.js + Apollo Server | Java Spring Boot 3 |
+| Database | In-memory (data lost on restart) | PostgreSQL (persistent) |
+| Auth | None | JWT (ADMIN/USER roles) |
+| Containerization | None | Docker + Docker Compose |
+| Setup time | ~45 min | ~2 min (`docker-compose up`) |
+| Pagination | None | Limit/Offset supported |
+| Filtering | None | Filter by name supported |
 <img width="825" height="870" alt="{A0D3ECD2-8E65-4B27-A9D4-91A1BE3DC13A}" src="https://github.com/user-attachments/assets/350d796d-bdb1-4826-8a55-b18a424cf751" />
 
 
